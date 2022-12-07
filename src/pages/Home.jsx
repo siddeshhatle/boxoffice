@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useCallback } from 'react'
 import ActorGrid from '../components/actor/ActorGrid';
 import CustomRadio from '../components/CustomRadio';
 import MainPageLayout from '../components/MainPageLayout';
@@ -7,6 +7,26 @@ import { apiGet } from '../misc/config';
 import { useLastQuery } from '../misc/custom-hooks';
 import { RadioInputsWrapper, SearchButtonWrapper, SearchInput } from './Home.styled';
 
+
+const renderResults = (results) => {
+  if(results && results.length === 0){
+    return <div>No results found</div>
+  }
+
+  if(results && results.length > 0){
+    return results[0].show ?
+    <ShowGrid data={results} /> 
+    // results.map( (item)=><div key={item.show.id}>{item.show.name}</div>) 
+    :
+    <ActorGrid data={results} />
+    // results.map( (item)=>(<div key={item.person.id}>{item.person.name}</div>)); 
+
+  }
+
+  return null;
+}
+
+
 const Home = () => {
 
   const[input, setInput] = useLastQuery();
@@ -14,10 +34,13 @@ const Home = () => {
   const [searchOption, setSearchOption] = useState('shows');
   const isShowsSearch = searchOption === 'shows'; 
 
-  const onInputChange = ev => {
+  
+  const onInputChange = useCallback(ev => {
     setInput(ev.target.value);
-  }
-
+  }, [setInput]) 
+  
+  
+  
   const onSearch = () => {
     
     apiGet(`/search/${searchOption}?q=${input}`).then(results => {
@@ -26,35 +49,19 @@ const Home = () => {
   }
 
 
-  const onRadioChange = (ev) => {
+  const onRadioChange = useCallback(ev => {
     setSearchOption(ev.target.value);
-  }
-
+  }, [])
+  
   // console.log(searchOption);
 
-  const onKeyDown = ev => {
+  const onKeyDown = (ev) => {
     if(ev.keyCode === 13){
       onSearch();
     }
-  }
+  } 
 
-  const renderResults = () => {
-    if(results && results.length === 0){
-      return <div>No results found</div>
-    }
 
-    if(results && results.length > 0){
-      return results[0].show ?
-      <ShowGrid data={results} /> 
-      // results.map( (item)=><div key={item.show.id}>{item.show.name}</div>) 
-      :
-      <ActorGrid data={results} />
-      // results.map( (item)=>(<div key={item.person.id}>{item.person.name}</div>)); 
-
-    }
-
-    return null;
-  }
 
   return (
     <MainPageLayout>
@@ -75,7 +82,7 @@ const Home = () => {
       </SearchButtonWrapper>
       
       {
-        renderResults()
+        renderResults(results)
       }
     </MainPageLayout>
   )
